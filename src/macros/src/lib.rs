@@ -59,11 +59,11 @@ pub fn define_transformers(input: proc_macro::TokenStream) -> proc_macro::TokenS
     let elems = v.iter().map(|type_| {
         let key = type_.as_str();
         let type_: TokenStream = type_.parse().unwrap();
-        quote!((#key, ::std::boxed::Box::new(|_i| Router ( ::std::boxed::Box::new(#type_ {}) ) ) ))
+        quote!((#key, Router(::std::boxed::Box::new(|| { ::std::boxed::Box::new(#type_ {}) } ) )))
     });
 
     quote!(
-        let TRANSFORMERS: ::std::collections::BTreeMap<&str, Router<Box<dyn Client>>> = ::std::collections::BTreeMap::from([
+        let TRANSFORMERS: ::std::collections::BTreeMap<&str, Router> = ::std::collections::BTreeMap::from([
             #(#elems),*
         ]);
     )

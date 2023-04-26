@@ -1,47 +1,35 @@
 use macros::{define_transformers, transformer};
 
 trait Transformer {
-    type Sport: ?Sized;
+    // type ClientType;
     fn describe(&self) -> &str;
 }
 
 #[derive(Debug)]
 #[transformer]
 struct TestType;
-// impl TestType {
-//     pub fn new(int: i32) -> Self {
-//         println!("{int}");
-//         Self {}
-//     }
-// }
 
 #[derive(Debug)]
 #[transformer]
 struct TestType2;
-// impl TestType2 {
-//     pub fn new(int: i32) -> Self {
-//         println!("{int}");
-//         Self {}
-//     }
-// }
 
-pub type TransformerGetter<T> = Box<dyn FnOnce(i32) -> Box<dyn Transformer<Sport = T>>>;
+pub type TransformerGetter = Box<dyn FnOnce() -> Box<dyn Transformer>>;
 
 trait Client {}
 struct Client1;
 struct Client2;
 impl Client for Client1 {}
 impl Client for Client2 {}
-pub struct Router<S>(TransformerGetter<Box<S>>);
+pub struct Router(TransformerGetter);
 
 impl Transformer for TestType {
-    type Sport = Box<Client1>;
+    // type ClientType = Client1;
     fn describe(&self) -> &str {
         "type1"
     }
 }
 impl Transformer for TestType2 {
-    type Sport = Box<Client2>;
+    // type ClientType = Client2;
     fn describe(&self) -> &str {
         "type2"
     }
@@ -56,27 +44,6 @@ pub fn run() {
     );
 
     for (k, Router(v)) in TRANSFORMERS.into_iter() {
-        println!("{k}: {:?}", v.describe());
+        println!("{k}: {:?}", v().describe());
     }
-
-    /*
-    fn getTestType(int: i32) -> impl Transformer {
-        TestType {}
-    }
-
-    fn getTestType2(int: i32) -> impl Transformer {
-        TestType2 {}
-    }
-
-    println!("{}", getTestType().describe());
-
-    let table = ::std::collections::BTreeMap::from([
-        ("TestType", getTestType),
-        ("TestType2", getTestType2),
-    ]);
-
-    for (k, v) in table.into_iter() {
-        println!("{k}: {:?}", v.describe());
-    }
-    */
 }
