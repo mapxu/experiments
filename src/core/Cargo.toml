@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 macros = { path = "../macros" }
 lazy_static = "1"
+axum = "0.6"
+http = "0.2"
