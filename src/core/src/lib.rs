@@ -18,17 +18,10 @@ struct TestType;
 struct TestType2;
 
 pub type TransformerGetter = Box<dyn FnOnce(i32) -> Box<dyn Any>>;
+pub struct Router(TransformerGetter);
 
-// trait Client {}
 struct Client1;
 struct Client2;
-// impl Client for Client1 {}
-// impl Client for Client2 {}
-// pub enum Router {
-//     TestType(TransformerGetter),
-//     TestType2(TransformerGetter),
-// }
-pub struct Router(TransformerGetter);
 
 impl Transformer for TestType {
     type ClientType = Client1;
@@ -42,28 +35,6 @@ impl Transformer for TestType2 {
         "type2"
     }
 }
-
-// pub fn get_transformer(v: Router) -> impl Transformer {
-//     // match v {
-//     //     Router::TestType(v) => {
-//     //         return *(*v)(32).downcast::<TestType>().unwrap();
-//     //     }
-//     //     Router::TestType2(v) => {
-//     //         return *(*v)(64).downcast::<TestType2>().unwrap();
-//     //     }
-//     // }
-// }
-
-// pub fn get_TestType(v: Router) -> impl Transformer {
-//     let Router(v) = v;
-//     *(*v)(32).downcast::<TestType>().unwrap();
-// }
-
-// macro_rules! get_transformer {
-//     ($k:expr, $v:expr, $input:expr) => {
-//         *(*$v)($input).downcast::<$k>().unwrap()
-//     };
-// }
 
 async fn handle_request<T>(
     Extension(handler): Extension<T>,
@@ -81,16 +52,6 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     Ok(())
-
-    // println!(
-    //     "{:?}",
-    //     TRANSFORMERS.iter().map(|(k, _v)| k).collect::<Vec<&&str>>()
-    // );
-
-    // for (k, Router(v)) in TRANSFORMERS.into_iter() {
-    //     #[transformer_getter(k, v)]
-    //     fn get
-    // }
 }
 
 pub async fn declare_endpoints<T: Clone + Send + Sync + 'static>(
@@ -99,8 +60,6 @@ pub async fn declare_endpoints<T: Clone + Send + Sync + 'static>(
 
     let mut router = axum::Router::new();
     for (k, Router(v)) in TRANSFORMERS.into_iter() {
-        // let v = get_transformer!(k, v, 32);
-        // println!("{k}: {:?}", v.describe());
         router = router.route(format!("/{}", k).as_str(), use_transformer!(k, v));
     }
     Ok(router)

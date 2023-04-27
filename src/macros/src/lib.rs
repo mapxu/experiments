@@ -8,8 +8,6 @@ use syn::parse::Parser;
 use syn::punctuated::Punctuated;
 use syn::*;
 
-// use std::collections::BTreeMap;
-// use std::iter;
 use std::result::Result as StdResult;
 use std::sync::Mutex;
 
@@ -28,9 +26,6 @@ pub fn transformer(
 ) -> proc_macro::TokenStream {
     assert!(attr.is_empty());
 
-    // fn check_impl(impl_: ItemImpl) -> std::result::Result<Type, Box<dyn ToTokens>> {
-    //     Ok(*impl_.self_ty)
-    // }
     fn check_impl(impl_: ItemStruct) -> std::result::Result<Ident, Box<dyn ToTokens>> {
         Ok(impl_.ident)
     }
@@ -59,8 +54,6 @@ pub fn transformer(
 pub fn define_transformers(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     assert!(input.is_empty());
 
-    // let typeid = &quote!(::std::any::TypeId);
-
     let v = IMPLS.lock().unwrap();
     let transformer_types = v.iter().map(|type_| {
         let s: &str = type_.as_str();
@@ -81,15 +74,6 @@ pub fn define_transformers(input: proc_macro::TokenStream) -> proc_macro::TokenS
     )
     .into()
 }
-
-// #[proc_macro]
-// pub fn get_transformer(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-//     let type_ = TokenStream::from(input);
-//     quote!(
-//         *(*v)(32).downcast::<>().unwrap();
-//     )
-//     .into()
-// }
 
 #[proc_macro]
 pub fn test_macro(_input: proc_macro::TokenStream) -> proc_macro::TokenStream {
