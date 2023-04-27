@@ -75,22 +75,33 @@ where
     Err(StatusCode::ACCEPTED)
 }
 
-pub fn run() {
-    define_transformers!();
+pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
+    axum::Server::bind(&"127.0.0.1:3000".parse().unwrap())
+        .serve(declare_endpoints().await?.into_make_service())
+        .await?;
 
-    println!(
-        "{:?}",
-        TRANSFORMERS.iter().map(|(k, _v)| k).collect::<Vec<&&str>>()
-    );
+    Ok(())
 
-    for (k, Router(v)) in TRANSFORMERS.into_iter() {
-        // let v = get_transformer!(k, v, 32);
-        // println!("{k}: {:?}", v.describe());
-        let getter = use_transformer!(k, v);
-    }
+    // println!(
+    //     "{:?}",
+    //     TRANSFORMERS.iter().map(|(k, _v)| k).collect::<Vec<&&str>>()
+    // );
 
     // for (k, Router(v)) in TRANSFORMERS.into_iter() {
     //     #[transformer_getter(k, v)]
     //     fn get
     // }
+}
+
+pub async fn declare_endpoints<T: Clone + Send + Sync + 'static>(
+) -> Result<axum::Router<T>, Box<dyn std::error::Error>> {
+    define_transformers!();
+
+    let mut router = axum::Router::new();
+    for (k, Router(v)) in TRANSFORMERS.into_iter() {
+        // let v = get_transformer!(k, v, 32);
+        // println!("{k}: {:?}", v.describe());
+        router = router.route(format!("/{}", k).as_str(), use_transformer!(k, v));
+    }
+    Ok(router)
 }

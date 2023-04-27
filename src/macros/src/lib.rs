@@ -152,8 +152,8 @@ pub fn use_transformer(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
         let key_type: TokenStream = key.parse().unwrap();
         quote!(
             #key_str => {
-                let transformer = *(*#callback_)(32).downcast::<#key_type>().unwrap();
-                get(handle_request::<#key_type>).layer(transformer)
+                let transformer = *#callback_(32).downcast::<#key_type>().unwrap();
+                get(handle_request::<#key_type>).layer(Extension(transformer))
             },
         )
     });
@@ -163,6 +163,7 @@ pub fn use_transformer(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
     quote!(
         match #type_ {
             #(#transformer_handlers)*
+            &_ => panic!()
         }
     )
     .into()
